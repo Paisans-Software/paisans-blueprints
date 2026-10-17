@@ -1,0 +1,23 @@
+/* WriteFreely-wisp multi-user account pages: keep the action out of tab flow. */
+@media (max-width: 600px) {
+  body#me > header.multiuser #full-nav > #user-nav {
+    max-width: 100%;
+    margin-left: 0;
+  }
+  body#me > header.multiuser #user-nav > .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem 1.25rem;
+    margin: .75rem 0 0;
+  }
+  body#me > header.multiuser #user-nav > .tabs > a + a {
+    margin-left: 0;
+  }
+  body#me > header.multiuser #full-nav > .right-side {
+    float: none;
+    clear: both;
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1rem;
+  }
+}

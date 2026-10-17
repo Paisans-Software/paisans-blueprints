@@ -50,6 +50,9 @@ services:
       # environment: `docker inspect` and /proc/<pid>/environ would show the
       # latter.
       - {{ .DataPath }}/config.ini:/data/config.ini:ro
+      # Directory mount keeps atomic toolkit stylesheet updates visible without
+      # the stale-inode behavior of a single-file bind mount.
+      - {{ .DataPath }}/custom-css:/usr/share/writefreely/static/local:ro
 {{- if .App.Pinned }}
     depends_on:
       - postgres
