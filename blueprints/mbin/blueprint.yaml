@@ -16,7 +16,7 @@ services:
   # since 1.15.0+paisans: MBIN_LOCKED_SETTINGS, MBIN_AUTHORIZED_FETCH,
   # MBIN_PRIVATE_INSTANCE read from the environment, and the /healthz
   # route the monitor checks. settings.avatar_override: false also needs
-  # 1.16.0+paisans, the first to read and lock MBIN_SSO_AVATAR_OVERRIDE.
+  # 1.15.4+paisans, the first to read and lock MBIN_SSO_AVATAR_OVERRIDE.
   # The newest 1.x always carries all of them.
   - {name: "app", image: "ghcr.io/paisans-software/mbin:1.*.*-paisans", purpose: "the application, and its messenger consumers"}
   # The three sidecars upstream's compose.yaml runs beside it. The
