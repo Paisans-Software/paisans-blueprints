@@ -15,7 +15,9 @@ services:
   # it). This blueprint's templates need four things the fork has carried
   # since 1.15.0+paisans: MBIN_LOCKED_SETTINGS, MBIN_AUTHORIZED_FETCH,
   # MBIN_PRIVATE_INSTANCE read from the environment, and the /healthz
-  # route the monitor checks. The newest 1.x always carries them.
+  # route the monitor checks. settings.avatar_override: false also needs
+  # 1.15.4+paisans, the first to read and lock MBIN_SSO_AVATAR_OVERRIDE.
+  # The newest 1.x always carries all of them.
   - {name: "app", image: "ghcr.io/paisans-software/mbin:1.*.*-paisans", purpose: "the application, and its messenger consumers"}
   # The three sidecars upstream's compose.yaml runs beside it. The
   # messenger consumers are not here: they run the application's own
@@ -49,6 +51,7 @@ config:
     - {name: MBIN_SSO_ONLY_MODE, when: "app.oidc"}
     - {name: MBIN_PRIVATE_INSTANCE, when: "app.gated"}
     - {name: MBIN_USE_FEDERATION_ALLOW_LIST, when: "app.gated"}
+    - {name: MBIN_SSO_AVATAR_OVERRIDE, when: "has(app.settings.avatar_override) && app.settings.avatar_override == false"}
   setting_keys:
     - {key: "MBIN_AUTHORIZED_FETCH", file: ".env", setting: "authorized_fetch"}
     - {key: "OAUTH_OIDC_ADMIN_GROUP", file: ".env", setting: "admin_group"}
@@ -298,6 +301,17 @@ checks:
       !has(app.settings.authorized_fetch) || type(app.settings.authorized_fetch) == bool
     message_expr: |-
       'is ' + (type(app.settings.authorized_fetch) == string ? '"' + app.settings.authorized_fetch + '"' : string(app.settings.authorized_fetch)) + '. Write true or false, unquoted, or leave it out for the default, true.'
+  # The toolkit renders avatar_override and locks it only when it is false,
+  # so a value meant as off, such as the string "no", would leave uploads
+  # open and out of the configuration's reach.
+  - id: avatar-override-not-a-boolean
+    level: refuse
+    hint: avatar_override is not true or false
+    key: settings.avatar_override
+    rule: |-
+      !has(app.settings.avatar_override) || type(app.settings.avatar_override) == bool
+    message_expr: |-
+      'is ' + (type(app.settings.avatar_override) == string ? '"' + app.settings.avatar_override + '"' : string(app.settings.avatar_override)) + '. Write true or false, unquoted, or leave it out for the default, true.'
   # With no mail server Mbin renders Symfony's null transport, so nothing
   # errors and the app works; what is lost is every contact form message
   # and the few account mails it still sends.
