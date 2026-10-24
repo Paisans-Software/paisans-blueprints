@@ -35,7 +35,7 @@ Every image here is a **track**: a repository and a tag pattern in which each `*
 
 ## What is not here
 
-The identity provider (`pocket-id`), the gate (`oauth2-proxy`), the account service (`account`) and the monitor (`uptime`) are reserved: they are built into Paisans with the Go that drives them, and no catalog provides them, this one included.
+The identity provider (`pocket-id`), the gate (`oauth2-proxy`), the account service (`account`), the engagement digest (`engagement`) and the monitor (`uptime`) are reserved: they are built into Paisans with the Go that drives them, and no catalog provides them, this one included.
 
 ## Writing a blueprint
 
