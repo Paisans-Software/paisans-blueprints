@@ -74,6 +74,11 @@ storage:
   # pinned to one node.
   local_only: true
   local_only_reason: "its S3 storage provider supplements the local media store rather than replacing it, so the media directory is always required"
+# MAS sends the email verification codes, as mas.yaml's email section.
+# Without one MAS logs "An email was supposed to be sent but no email
+# backend is configured" and drops the mail (crates/email/src/transport.rs
+# at tag v1.28.0), so a member can never verify an address.
+mail: reads
 # The relying party is the homeserver's authentication service, MAS
 # at tag v1.24.0, so the callback is its upstream provider's, ending in
 # the provider's ULID (crates/router/src/endpoints.rs:742-762). PKCE is on:
@@ -115,6 +120,16 @@ secrets:
   self_rotated: ["mas_signing_key", "mas_matrix_secret"]
 # The rules validate holds a homeserver to, by the ids they have always had.
 checks:
+  # With no mail server mas.yaml has no email section, so MAS keeps its
+  # blackhole transport: nothing errors, and every verification code is
+  # dropped.
+  - id: synapse-without-smtp
+    level: warn
+    hint: synapse has no smtp host, so its mail is discarded
+    key: smtp
+    rule: has(app.smtp.host)
+    message_expr: |-
+      'resolves no SMTP host, so ' + app.name + ' renders no email section for Matrix Authentication Service, which discards every mail it sends, the codes that verify an email address among them. It works otherwise. Declare a top level smtp block, or one on this app.'
   # Its media store cannot follow a failover, and the blueprint renders its
   # own Postgres and the hook that creates MAS's database beside it, neither
   # of which exists under cluster placement. A stack pinned for its database
