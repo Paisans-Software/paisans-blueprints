@@ -41,7 +41,7 @@ The identity provider (`pocket-id`), the gate (`oauth2-proxy`), the account serv
 
 `blueprint.yaml` is read by `internal/blueprints.Parse` in paisans-cli, which documents every key and refuses any it does not know. Each value that comes from an application's source is cited beside it in a comment, with the tag it was read at, because a wrong one fails at the worst moment: a callback that does not match fails at the end of a member's first sign in.
 
-A blueprint that other apps link to says what it offers under `provides`, one CEL expression per value (Synapse's `matrix-homeserver` offers `base_url` and `server_name`), and one that links to it names the role under `consumes` with the setting that names its provider. Paisans knows no role itself.
+A blueprint that other apps link to says what it offers under `provides`, one CEL expression per value (Synapse's `matrix-homeserver` offers `base_url`, `server_name` and `mas_admin_url`), and one that links to it names the role under `consumes` with the setting that names its provider. Paisans knows no role itself.
 
 ## First sign-in behind the gateway
 
