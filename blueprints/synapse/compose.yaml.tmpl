@@ -64,7 +64,9 @@ services:
     # firewall, so a port published on every interface of a host with a
     # public address is reachable from the internet whatever ufw says. The
     # gateway, over the mesh, is the only thing that should reach it. The
-    # second port is the admin API, which only apps on the mesh reach.
+    # second port is the admin API, which only apps on the mesh reach: the
+    # admin listener in mas.yaml binds 18010, and mas_admin_url in
+    # blueprint.yaml names it.
     ports:
       - "{{ .MeshAddress }}:{{ (index .ServicePorts "mas") }}:{{ (index .ServicePorts "mas") }}"
       - "{{ .MeshAddress }}:18010:18010"

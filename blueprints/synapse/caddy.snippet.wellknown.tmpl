@@ -27,7 +27,9 @@ handle /.well-known/matrix/client {
 	header Access-Control-Allow-Origin *
 	respond `{"m.homeserver": {"base_url": "https://{{ .App.Hostname }}"}}` 200
 }
-# The same refusal as on the homeserver's own name, held on this name too.
+# The same refusal as on the homeserver's own name, held on this name too:
+# these two handles keep it even if the bare handle below starts serving
+# something.
 handle /api/admin {
 	respond 404
 }
