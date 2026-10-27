@@ -59,3 +59,11 @@ groups decide which community members may reach the OIDC signup flow. Without
 OIDC, the blueprint keeps registration closed.
 
 `catalog.yaml`'s `wizard` is the menu `paisans create` offers, in order. Adding a blueprint there is how a new deployment is offered it.
+
+## Synapse's admin API
+
+MAS's admin API is on a listener of its own, port 18010 on the site's mesh address, and nowhere else. The gateway refuses `/api/admin` on the homeserver's hostnames.
+
+The blueprint declares one admin client for each engagement app that links to the homeserver, with the client secret the two share. Rotating it (`paisans secrets rotate apps.<engagement app>.mas_admin_client_secret`) re-renders and restarts both.
+
+The admin client needs Matrix Authentication Service 1.5.0 or newer, the first release with every admin API endpoint the engagement service uses.
