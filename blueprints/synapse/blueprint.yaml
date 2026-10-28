@@ -3,9 +3,9 @@
 apiVersion: paisans.blueprint/v1
 name: synapse
 # Its templates read .Consumers and its role reads app.mesh_address, which a
-# toolkit before 0.3.0-rc.13 does not have, so that toolkit keeps the release
+# toolkit before 0.3.0-rc.14 does not have, so that toolkit keeps the release
 # before this one.
-requires_toolkit: ">= 0.3.0-rc.13"
+requires_toolkit: ">= 0.3.0-rc.14"
 services:
   # Three containers, because a homeserver does not authenticate anyone
   # any more. Synapse is a resource server, Matrix Authentication
