@@ -92,6 +92,17 @@ handle /.well-known/matrix/* {
 {{- template "homeserver" . }}
 }
 {{- end }}
+# MAS's admin API is mounted only on its admin listener, on the mesh. These
+# refuse /api/admin here so that it stays unpublished whatever MAS's web
+# listener mounts. Both paths are longer than the bare handle below and overlap
+# nothing under /_matrix, /_synapse or /.well-known/matrix, so they take no
+# request from the routes above.
+handle /api/admin {
+	respond 404
+}
+handle /api/admin/* {
+	respond 404
+}
 handle {
 {{- template "mas" . }}
 }

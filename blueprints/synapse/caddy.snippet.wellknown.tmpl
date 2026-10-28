@@ -27,6 +27,15 @@ handle /.well-known/matrix/client {
 	header Access-Control-Allow-Origin *
 	respond `{"m.homeserver": {"base_url": "https://{{ .App.Hostname }}"}}` 200
 }
+# The same refusal as on the homeserver's own name, held on this name too:
+# these two handles keep it even if the bare handle below starts serving
+# something.
+handle /api/admin {
+	respond 404
+}
+handle /api/admin/* {
+	respond 404
+}
 handle {
 	# Everything else on this name is not this app's. A deployment that serves
 	# a site on the apex claims those paths in its own block, ahead of this
