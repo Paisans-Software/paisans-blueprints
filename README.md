@@ -67,3 +67,7 @@ MAS's admin API is on a listener of its own, port 18010 on the site's mesh addre
 The blueprint declares one admin client for each engagement app that links to the homeserver, with the client secret the two share. Rotating it (`paisans secrets rotate apps.<engagement app>.mas_admin_client_secret`) re-renders and restarts both.
 
 The admin client needs Matrix Authentication Service 1.5.0 or newer, the first release with every admin API endpoint the engagement service uses.
+
+## Direct messages join without an invite
+
+`settings.auto_accept_dm_invites`, on by default, sets Synapse's `auto_accept_invites` so a member joins a direct chat another member of the same homeserver invites them to without accepting it first, and the room is marked direct for them. A group room, or an invite from another server, still waits for the member. The community's bot reaches each member this way with no invite left pending. Set it to `false` for Synapse's default, where every invite waits.
