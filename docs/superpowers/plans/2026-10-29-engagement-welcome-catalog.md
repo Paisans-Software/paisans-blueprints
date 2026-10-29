@@ -16,7 +16,7 @@
 - Variable names exactly: `MBIN_AGENT_CLIENT_ID`, `MBIN_AGENT_CLIENT_SECRET`, `MBIN_AGENT_CLIENT_SCOPES`, `MBIN_AGENT_USERNAME`, `MBIN_AGENT_CONTACT_EMAIL`.
 - `forum` offers `api_port: "'8080'"`, nothing else.
 - Synapse renders `auto_join_rooms: ["#<alias>:<server_name>"]` and `autocreate_auto_join_rooms: false`, only when an engagement consumer has `community_room_alias`.
-- Both blueprints that read `.Values` carry `requires_toolkit: ">= 0.3.0-rc.19"`, the first toolkit release after rc.18 (the newest tag today). Confirm the number against the release that actually carries PR #585 before tagging the catalog. No release or tag is cut here.
+- Both blueprints that read `.Values` carry `requires_toolkit: ">= 0.3.0-rc.20"`, the first toolkit release after rc.19 (the newest tag today). Confirm the number against the release that actually carries PR #585 before tagging the catalog. No release or tag is cut here.
 - Mbin's image track is unchanged. The agent client needs an Mbin fork release carrying `mbin:agent:sync`; none exists yet, so an older image ignores the five variables.
 - Comments cite source by tag and line, as the files already do. No rejected alternatives in comments or README.
 
@@ -60,7 +60,7 @@ The catalog has no tests of its own. Each task is checked by rendering paisans-c
 ### Task 2: synapse auto-joins new accounts to the community room
 
 **Files:**
-- Modify: `blueprints/synapse/blueprint.yaml:8` (`requires_toolkit` to `>= 0.3.0-rc.19`, reason extended to `.Values`)
+- Modify: `blueprints/synapse/blueprint.yaml:8` (`requires_toolkit` to `>= 0.3.0-rc.20`, reason extended to `.Values`)
 - Modify: `blueprints/synapse/homeserver.yaml.secret.tmpl` (after `auto_accept_invites`)
 
 **Interfaces:**
