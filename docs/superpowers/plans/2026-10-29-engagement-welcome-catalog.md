@@ -25,12 +25,12 @@
 - **No engagement app:** neither file changes, byte for byte. Checked by the `no-digest` render.
 - **Engagement app without Matrix:** synapse renders no `auto_join_rooms` (the consumer has no alias), checked by the render where the toolkit omits the alias.
 - **Two engagement apps on one forum:** Mbin has one declared agent client, so only the first consumer with a client id is rendered; the comment says so.
-- **Room missing when an account registers:** Synapse logs and skips the join; registration still succeeds (`synapse/handlers/register.py:606-612` at v1.164.1). Stated in the comment so nobody reads a missing join as a failed signup.
+- **Room missing when an account registers:** Synapse logs and skips the join; registration still succeeds (`synapse/handlers/register.py:608-613` at v1.164.1). Stated in the comment so nobody reads a missing join as a failed signup.
 - **Secret with shell or env specials:** rendered through `envquote`, as every other secret in the file.
 
 ## Synapse finding (read before Task 2)
 
-At tag v1.164.1, MAS provisioning (`synapse/rest/synapse/mas/users.py:155-161`) creates an account with `registration_handler.register_user(..., by_admin=True)`. `register_user` runs `_auto_join_rooms` for every non-guest account unless consent is required at registration (`synapse/handlers/register.py:384-396`). With `autocreate_auto_join_rooms` false it goes straight to `_join_rooms` (`:631-643`), which resolves the alias and joins directly when the room's join rule is `public` (`:553-577`, `:595-605`). The engagement bot creates the room public, so no `auto_join_user_id` is needed. **Auto-join works for MAS-provisioned accounts; no invite fallback is needed.**
+At tag v1.164.1, MAS provisioning (`synapse/rest/synapse/mas/users.py:155-161`) creates an account with `registration_handler.register_user(..., by_admin=True)`. `register_user` runs `_auto_join_rooms` for every non-guest account unless consent is required at registration (`synapse/handlers/register.py:384-396`). With `autocreate_auto_join_rooms` false it goes straight to `_join_rooms` (`:631-643`), which resolves the alias and joins directly when the room's join rule is `public` (`:557-605`). The engagement bot creates the room public, so no `auto_join_user_id` is needed. **Auto-join works for MAS-provisioned accounts; no invite fallback is needed.**
 
 ## Test harness (scratch, never committed)
 
