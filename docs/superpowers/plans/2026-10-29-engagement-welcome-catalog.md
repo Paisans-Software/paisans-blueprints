@@ -22,24 +22,20 @@
 
 ## Review Focus
 
-- **No engagement app:** neither file changes, byte for byte. Checked by the `no-digest` render.
+- **No engagement app:** synapse renders unchanged, and mbin renders only the "no engagement app" comment. Checked by rendering a deployment without the engagement app.
 - **Engagement app without Matrix:** synapse renders no `auto_join_rooms` (the consumer has no alias), checked by the render where the toolkit omits the alias.
-- **Two engagement apps on one forum:** Mbin has one declared agent client, so only the first consumer with a client id is rendered; the comment says so.
+- **Two engagement apps on one forum:** Mbin has one declared agent client, so only the first consumer with a complete client is rendered; the comment says so.
+- **Incomplete consumer values:** the agent block renders only when the client id, the username and the shared secret are all non-empty; otherwise the comment renders.
 - **Room missing when an account registers:** Synapse logs and skips the join; registration still succeeds (`synapse/handlers/register.py:608-613` at v1.164.1). Stated in the comment so nobody reads a missing join as a failed signup.
 - **Secret with shell or env specials:** rendered through `envquote`, as every other secret in the file.
 
 ## Synapse finding (read before Task 2)
 
-At tag v1.164.1, MAS provisioning (`synapse/rest/synapse/mas/users.py:155-161`) creates an account with `registration_handler.register_user(..., by_admin=True)`. `register_user` runs `_auto_join_rooms` for every non-guest account unless consent is required at registration (`synapse/handlers/register.py:384-396`). With `autocreate_auto_join_rooms` false it goes straight to `_join_rooms` (`:631-643`), which resolves the alias and joins directly when the room's join rule is `public` (`:557-605`). The engagement bot creates the room public, so no `auto_join_user_id` is needed. **Auto-join works for MAS-provisioned accounts; no invite fallback is needed.**
+Read in Synapse at tag v1.160.0, the version the synapse blueprint's comments pin, and unchanged at v1.164.1: MAS provisioning (`synapse/rest/synapse/mas/users.py:155-161`) creates an account with `registration_handler.register_user(..., by_admin=True)`. `register_user` runs `_auto_join_rooms` for every non-guest account unless consent is required at registration (`synapse/handlers/register.py:384-396`). With `autocreate_auto_join_rooms` false it goes to `_join_rooms` (`:615-643`), which resolves the alias and joins the account directly when the room's join rule is `public` (`:557-605`). The engagement bot creates the room public. A room that does not exist yet is logged and skipped, and the account is still created (`:608-613`). MAS-provisioned accounts are auto-joined.
 
-## Test harness (scratch, never committed)
+## Verification
 
-As in paisans-cli `docs/superpowers/plans/2026-10-27-engagement-matrix-catalog.md`, *Test harness*, with
-`TK=/Users/wash/Developer/paisans.community/src/paisans-stack/.worktrees/engagement-welcome-toolkit` and
-`CAT=/Users/wash/Developer/paisans.community/src/blueprints/.worktrees/engagement-welcome`. `H` is a scratchpad directory. `render.sh` copies TK, replaces its test catalog with CAT, runs `go test ./internal/render -run '^TestGoldenTree$' -update`, and copies the goldens out.
-
-- [ ] `sh $H/render.sh $H/base` on the unchanged catalog: PASS.
-- [ ] Record `go test ./internal/blueprints/ ./internal/render/ -count=1` failures on the copy as `$H/base-fails.txt`.
+The catalog has no tests of its own. Each task is checked by rendering paisans-cli's golden test deployment (`internal/render/testdata/deployment.yaml`, `TestGoldenTree`) on a copy of the paisans-cli branch carrying #585, with that copy's test catalog `mbin` and `synapse` replaced by this branch's. Every task compares against a render of the unchanged catalog, and the test failures on the copy must not grow. The same render without the engagement app covers the deployment that has none. `paisans blueprint lint` runs on each changed blueprint.
 
 ---
 
@@ -54,11 +50,11 @@ As in paisans-cli `docs/superpowers/plans/2026-10-27-engagement-matrix-catalog.m
 - Consumes: `.Consumers "forum"` entries with `.Values.mbin_agent_client_id`, `.Values.mbin_agent_username`, `.Secrets.mbin_agent_client_secret`; `.Setting "contact_email" .SMTPSender`.
 - Produces: `forum.api_port` = `8080`, which the toolkit renders into `ENGAGEMENT_MBIN_API_URL`.
 
-- [ ] **Step 1: State the expected render.** `diff -ru $H/base $H/t1` shows exactly: the talk app's `.env` gains the five `MBIN_AGENT_*` lines (client id `engagement-agent`, username the digest app's `bot_localpart`, secret the fixture's `fixture-not-a-secret-digest-mbin-agent`, the scopes above, the contact email the file already renders as `KBIN_CONTACT_EMAIL`); the digest app's `.env` gains the toolkit's three Mbin agent lines with `api_port` 8080. Nothing else.
-- [ ] **Step 2: Run before the change.** `sh $H/render.sh $H/t1`: the toolkit copy's own test catalog already provides `forum`, so CAT without it must render the digest without the Mbin lines. Not the state of step 1.
-- [ ] **Step 3: Implement.** `provides: [{role: forum, values: {api_port: "'8080'"}}]` with a comment (who links, why the mesh port); `requires_toolkit` with the reason. In `.env.secret.tmpl`, after the OIDC block, a block guarded by the first `forum` consumer whose `Values` has `mbin_agent_client_id`, rendering the five variables, each value through `envquote`; else a comment line saying no engagement app links here. Comment: what `mbin:agent:sync` does with them, that only one agent client is declared, and that an image without the command ignores them.
-- [ ] **Step 4: Run.** `sh $H/render.sh $H/t1` and the diff of step 1: exactly that. `sh $H/render.sh $H/t1n no-digest` and `diff -ru $H/base-n $H/t1n` (base rendered no-digest first): only the "no engagement app" comment.
-- [ ] **Step 5: Lint.** `$H/paisans blueprint lint $CAT/blueprints/mbin`: PASS. Test failures on the copy equal `$H/base-fails.txt`.
+- [ ] **Step 1: State the expected render.** Against the unchanged render, exactly: the talk app's `.env` gains the five `MBIN_AGENT_*` lines (client id `engagement-agent`, username the digest app's `bot_localpart`, secret the fixture's `fixture-not-a-secret-digest-mbin-agent`, the scopes above, the contact email the file already renders as `KBIN_CONTACT_EMAIL`); the digest app's `.env` gains the toolkit's three Mbin agent lines with `api_port` 8080. Nothing else.
+- [ ] **Step 2: Render before the change.** Without `forum` the digest renders no Mbin lines and the talk app no agent block. Not the state of step 1.
+- [ ] **Step 3: Implement.** `provides: [{role: forum, values: {api_port: "'8080'"}}]` with a comment (who links, why the mesh port); `requires_toolkit` with the reason. In `.env.secret.tmpl`, after the OIDC block, a block guarded by the first `forum` consumer whose client id, username and shared secret are all non-empty, rendering the five variables, each value through `envquote`; else a comment line saying no engagement app links here. Comment: what `mbin:agent:sync` does with them, that only one agent client is declared, and that an image without the command ignores them.
+- [ ] **Step 4: Render.** Exactly the changes of step 1. Without the engagement app: only the "no engagement app" comment.
+- [ ] **Step 5: Lint.** `paisans blueprint lint blueprints/mbin`: PASS. No new test failures on the copy.
 - [ ] **Step 6: Commit.** `feat: mbin provides forum and declares the engagement agent client`
 
 ### Task 2: synapse auto-joins new accounts to the community room
@@ -70,17 +66,17 @@ As in paisans-cli `docs/superpowers/plans/2026-10-27-engagement-matrix-catalog.m
 **Interfaces:**
 - Consumes: `.Consumers "matrix-homeserver"` entries with `.Values.community_room_alias`; `.ServerName`.
 
-- [ ] **Step 1: State the expected render.** `diff -ru $H/t1 $H/t2`: the chat app's `homeserver.yaml` gains
+- [ ] **Step 1: State the expected render.** Against Task 1's render, the chat app's `homeserver.yaml` gains
   ```yaml
   auto_join_rooms:
     - "#<alias>:<server_name>"
   autocreate_auto_join_rooms: false
   ```
   with the fixture's alias and server name. Nothing else.
-- [ ] **Step 2: Implement.** Range the consumers, render one entry per alias (`quote (printf "#%s:%s" ...)`), both keys only when at least one alias exists. Comment cites the Synapse finding above by file and line, says the bot creates the room public so the join needs no invite, and that a room not yet created is skipped without failing the registration.
-- [ ] **Step 3: Run.** `sh $H/render.sh $H/t2` and the diff of step 1; `no-digest` render: synapse unchanged from base. Lint `blueprints/synapse`: PASS.
+- [ ] **Step 2: Implement.** Range the consumers, render one entry per alias (`quote (printf "#%s:%s" ...)`), both keys only when at least one alias exists. Comment cites the Synapse finding above by file and line at the pinned tag, says the bot creates the room public and the account joins it directly, and that a room not yet created is skipped and the account still created.
+- [ ] **Step 3: Render.** Exactly the change of step 1; without the engagement app, synapse is unchanged. `paisans blueprint lint blueprints/synapse`: PASS.
 - [ ] **Step 4: Commit.** `feat: synapse joins new accounts to the engagement app's community room`
 
 ### Task 3: Pull request
 
-- [ ] Push `feat/engagement-welcome`, open a PR into `main` with the Generated with Claude Code footer. The body states the `requires_toolkit` floor to confirm, that no Mbin release carries the agent client yet, and the Synapse finding. Do not merge, tag or release.
+- [ ] Push `feat/engagement-welcome`, open a PR into `main` with the Generated with Claude Code footer. The body states that the `requires_toolkit` floor must match the first toolkit release carrying paisans-cli #585 before any catalog tag, that no Mbin release carries the agent client yet, and the Synapse finding. Do not merge, tag or release.
