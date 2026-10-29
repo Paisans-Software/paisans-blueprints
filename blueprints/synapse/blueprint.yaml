@@ -108,6 +108,13 @@ oidc:
   member_group_setting: "member_group"
   default_admin_group: "admins"
   default_member_group: "members"
+settings:
+  # Whether a member joins a direct chat a fellow member invites them to
+  # without accepting it first. On by default: the homeserver serves one
+  # community, and a direct message from the community's own bot or a fellow
+  # member is wanted rather than screened. Off restores Synapse's default,
+  # where every invite waits for the member.
+  auto_accept_dm_invites: {type: bool, default: true}
 secrets:
   # Three, because the homeserver no longer authenticates anyone and Matrix
   # Authentication Service in front of it needs its own.
