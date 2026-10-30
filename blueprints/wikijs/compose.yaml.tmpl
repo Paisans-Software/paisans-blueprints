@@ -56,8 +56,14 @@ services:
     tmpfs:
       - /wiki/data/uploads:size={{ .SettingInt "upload_max_mb" 5 }}0m,uid=1000,gid=1000,mode=0700
 {{- if .App.Pinned }}
+    # Started, and restarted, only once postgres answers. The bare list form
+    # waits for the container alone, and `docker compose restart` waits for no
+    # dependency without restart: true, so restarting the stack raced the
+    # database and failed the apply on a lookup of a name not yet registered.
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+        restart: true
 {{- end }}
 
   # Finishes Wiki.js's setup once per database and keeps its sign-in, site
@@ -101,6 +107,18 @@ services:
       {{ .DeploymentLabel }}: "{{ .DeploymentID }}"
     image: {{ .Image "postgres" }}
     restart: unless-stopped
+    # Ready once it answers over TCP. The image's first start runs initdb
+    # against a server listening on its socket alone, so a check over the
+    # socket would pass before the real server is up. The start period covers
+    # that initdb, and the start interval asks every second within it, so the
+    # services that wait for this one start within a second of it.
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "{{ .DBUser }}", "-d", "{{ .DBName }}"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5m
+      start_interval: 1s
     environment:
       POSTGRES_DB: {{ .DBName }}
       POSTGRES_USER: {{ .DBUser }}
