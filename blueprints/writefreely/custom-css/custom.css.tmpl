@@ -63,10 +63,11 @@ body:not(#collection):not(#post):not(#subpage) header h2 > a[href="/"] {
   height: 1.1em; font: 1000 28px/1.1 var(--ps-font) !important;
   letter-spacing: -.012em; color: transparent !important; text-decoration: none; transition: none;
 }
-/* One pseudo-element, the dot coloured by a clipped gradient, so the hidden site name never splits it. */
+/* One pseudo-element, the dot coloured by a clipped gradient, so the hidden site name never splits it.
+   The colour changes exactly at the dot's advance (0.273em in Nunito 1000; "g." is not kerned), so no leaf reaches the g. */
 body:not(#collection):not(#post):not(#subpage) header h2 > a[href="/"]::before {
   content: 'Blog.'; display: block;
-  background: linear-gradient(90deg, var(--ps-ink) 0 calc(100% - .3em), var(--ps-leaf) calc(100% - .3em));
+  background: linear-gradient(90deg, var(--ps-ink) 0 calc(100% - .273em), var(--ps-leaf) calc(100% - .273em));
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
   width: max-content;
 }
